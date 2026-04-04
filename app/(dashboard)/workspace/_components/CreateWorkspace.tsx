@@ -23,13 +23,17 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { Plus } from "lucide-react";
+import { Loader2, Plus } from "lucide-react";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { workspaceSchema } from "@/app/schemas/workspace";
+import { workspaceSchema, WorkspaceSchemaType } from "@/app/schemas/workspace";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { orpc } from "@/lib/orpc";
+import { toast } from "sonner";
 
 export function CreateWorkspace() {
+  const queryClient = useQueryClient();
   const [open, setOpen] = useState(false);
   const form = useForm({
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -39,8 +43,24 @@ export function CreateWorkspace() {
     },
   });
 
-  function onSubmit() {
-    console.log("data");
+  const createWorkspaceMutation = useMutation(
+    orpc.workspace.create.mutationOptions({
+      onSuccess: (newWorkspace) => {
+        toast.success(`Workspace ${newWorkspace.workspaceName} created`);
+        queryClient.invalidateQueries({
+          queryKey: orpc.workspace.list.queryKey(),
+        });
+        form.reset();
+        setOpen(false);
+      },
+      onError: () => {
+        toast.error("Failed to create workspace, try again!");
+      },
+    }),
+  );
+
+  function onSubmit(values: WorkspaceSchemaType) {
+    createWorkspaceMutation.mutate(values);
   }
 
   return (
@@ -84,7 +104,19 @@ export function CreateWorkspace() {
                   </FormItem>
                 )}
               />
-              <Button type="submit">Create Workspace</Button>
+              <Button
+                disabled={createWorkspaceMutation.isPending}
+                type="submit"
+              >
+                {createWorkspaceMutation.isPending ? (
+                  <>
+                    <Loader2 className="size-4 animate-spin" />
+                    <p>Creating...</p>
+                  </>
+                ) : (
+                  "Create Workspace"
+                )}
+              </Button>
             </form>
           </Form>
         </DialogContent>
