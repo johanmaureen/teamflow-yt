@@ -42,7 +42,7 @@ export const createChannel = base
           createdById: context.user.id,
         },
       });
-      //console.log("created channel: ", channel);
+      console.log("created channel: ", channel);
       return channel;
     } catch (error) {
       const prismaError =
@@ -95,6 +95,15 @@ export const listChannels = base
     console.log("orgCode type", typeof context.workspace.orgCode);
     */
     let channels = [] as Channel[];
+    const startTime = Date.now();
+    const queryParams = {
+      workspaceId: context.workspace.orgCode as string,
+      timestamp: new Date().toISOString(),
+      userId: context.user.id,
+    };
+
+    //console.log("🔍 Starting channel.findMany query", queryParams);
+
     try {
       channels = await prisma.channel.findMany({
         where: {
@@ -104,15 +113,26 @@ export const listChannels = base
           createdAt: "desc",
         },
       });
+
+      /* const duration = Date.now() - startTime;
+      console.log("✅ channel.findMany succeeded", {
+        ...queryParams,
+        duration: `${duration}ms`,
+        resultCount: channels.length,
+        channelIds: channels.map((c) => c.id),
+      });
+ */
       //console.log("channels: ", channels);
     } catch (error) {
+      const duration = Date.now() - startTime;
       const prismaError =
         typeof error === "object" && error !== null && "code" in error
           ? (error as { code?: string; meta?: unknown; clientVersion?: string })
           : null;
-      console.error("Prisma channel.findMany failed", {
-        workspace: context.workspace,
-        orgCode: context.workspace.orgCode,
+
+      console.error("❌ Prisma channel.findMany failed", {
+        ...queryParams,
+        duration: `${duration}ms`,
         code: prismaError?.code,
         meta: prismaError?.meta,
         clientVersion: prismaError?.clientVersion,

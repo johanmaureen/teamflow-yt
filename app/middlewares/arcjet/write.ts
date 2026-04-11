@@ -11,7 +11,7 @@ const buildStandardAj = () =>
     }),
   );
 
-export const hwriteSecurityMiddleware = base
+export const writeSecurityMiddleware = base
   .$context<{
     request: Request;
     user: KindeUser<Record<string, unknown>>;
