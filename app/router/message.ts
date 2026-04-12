@@ -9,6 +9,7 @@ import { prisma } from "@/lib/db";
 import { writeSecurityMiddleware } from "../middlewares/arcjet/write";
 import { createMessageSchema } from "../schemas/message";
 import { getAvatar } from "@/lib/get-avatar";
+import { readSecurityMiddleware } from "../middlewares/arcjet/read";
 
 export const createMessage = base
   .use(requireAuthMiddleware)
@@ -17,9 +18,9 @@ export const createMessage = base
   .use(writeSecurityMiddleware)
   .route({
     method: "POST",
-    path: "/messags",
+    path: "/messages",
     summary: "Create a new Message",
-    tags: ["channels"],
+    tags: ["Messages"],
   })
   .input(createMessageSchema)
   .output(z.custom<Message>())
@@ -27,13 +28,13 @@ export const createMessage = base
     // verify that the channel belongs to the user organizatio
     const channel = await prisma.channel.findFirst({
       where: {
-        id: input.channeId,
+        id: input.channelId,
         workspaceId: context.workspace.orgCode,
       },
     });
 
     if (!channel) {
-      throw errors.FORBIDDEN;
+      throw errors.FORBIDDEN();
     }
 
     try {
@@ -41,7 +42,7 @@ export const createMessage = base
         data: {
           content: input.content,
           imageUrl: input.imageUrl,
-          channelId: input.channeId,
+          channelId: input.channelId,
           authorId: context.user.id,
           authorEmail: context.user.email!,
           authorName: context.user.given_name ?? "John Doe",
@@ -75,4 +76,46 @@ export const createMessage = base
       });
       throw error;
     }
+  });
+
+export const listMessages = base
+  .use(requireAuthMiddleware)
+  .use(requireWorkspaceMiddleware)
+  .use(standardSecurityMiddleware)
+  .use(readSecurityMiddleware)
+  .route({
+    method: "GET",
+    path: "/messages",
+    summary: "List all Message",
+    tags: ["Messages"],
+  })
+  .input(
+    z.object({
+      channelId: z.string(),
+    }),
+  )
+  .output(z.array(z.custom<Message>()))
+  .handler(async ({ context, input, errors }) => {
+    // verify that the channel belongs to the user organizatio
+    const channel = await prisma.channel.findFirst({
+      where: {
+        id: input.channelId,
+        workspaceId: context.workspace.orgCode,
+      },
+    });
+
+    if (!channel) {
+      throw errors.FORBIDDEN();
+    }
+
+    const data = await prisma.message.findMany({
+      where: {
+        channelId: input.channelId,
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
+    });
+
+    return data;
   });
