@@ -60,6 +60,7 @@ export function MessageInputForm({ channelId }: iAppProps) {
                   value={field.value}
                   onChange={field.onChange}
                   onSubmit={() => onSubmit(form.getValues())}
+                  isSubmitting={createMessageMutation.isPending}
                 />
               </FormControl>
               <FormMessage />
