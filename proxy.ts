@@ -1,6 +1,6 @@
 import arcjet, { createMiddleware, detectBot } from "@arcjet/next";
-import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
 import { NextRequest, NextResponse } from "next/server";
+import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
 
 const aj = arcjet({
   key: process.env.ARCJET_KEY!,
@@ -16,6 +16,7 @@ const aj = arcjet({
     }),
   ],
 });
+
 async function existingMiddleware(req: NextRequest) {
   const { getClaim } = getKindeServerSession();
   const orgCode = await getClaim("org_code");

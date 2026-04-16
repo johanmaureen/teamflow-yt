@@ -15,6 +15,7 @@ export function MessageItem({ message }: iAppProps) {
         alt="User Avatar"
         width={32}
         height={32}
+        loading="eager"
         className="size-8 rounded-lg"
       />
 
@@ -38,6 +39,18 @@ export function MessageItem({ message }: iAppProps) {
           className="text-sm wrap-break-word prose dark:prose-invert max-w-none mark:text-primary"
           content={JSON.parse(message.content)}
         />
+        <div className="mt-3">
+          {message.imageUrl && (
+            <Image
+              src={message.imageUrl}
+              alt="message attach"
+              width={512}
+              height={512}
+              loading="eager"
+              className="ronded-md max-h-80 w-auto object-contain"
+            />
+          )}
+        </div>
       </div>
     </div>
   );
