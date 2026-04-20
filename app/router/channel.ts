@@ -11,8 +11,9 @@ import {
   organization_user,
   Organizations,
 } from "@kinde/management-api-js";
-import { KindeOrganization } from "@kinde-oss/kinde-auth-nextjs";
+import { KindeOrganization, KindeUser } from "@kinde-oss/kinde-auth-nextjs";
 import { prisma } from "@/lib/db";
+import { readSecurityMiddleware } from "../middlewares/arcjet/read";
 
 export const createChannel = base
   .use(requireAuthMiddleware)
@@ -114,14 +115,6 @@ export const listChannels = base
         },
       });
 
-      /* const duration = Date.now() - startTime;
-      console.log("✅ channel.findMany succeeded", {
-        ...queryParams,
-        duration: `${duration}ms`,
-        resultCount: channels.length,
-        channelIds: channels.map((c) => c.id),
-      });
- */
       //console.log("channels: ", channels);
     } catch (error) {
       const duration = Date.now() - startTime;
@@ -160,4 +153,69 @@ export const listChannels = base
       members,
       currentWorkspace: context.workspace,
     };
+  });
+
+export const getChannel = base
+  .use(requireAuthMiddleware)
+  .use(requireWorkspaceMiddleware)
+  .use(standardSecurityMiddleware)
+  .use(readSecurityMiddleware)
+  .route({
+    method: "GET",
+    path: "/channels/:channelId",
+    summary: "Get a Channel by ID",
+    tags: ["channels"],
+  })
+  .input(
+    z.object({
+      channelId: z.string(),
+    }),
+  )
+  .output(
+    z.object({
+      channelName: z.string(),
+      currentUser: z.custom<KindeUser<Record<string, unknown>>>(),
+    }),
+  )
+  .handler(async ({ context, input, errors }) => {
+    try {
+      const channel = await prisma.channel.findUnique({
+        where: {
+          id: input.channelId,
+          workspaceId: context.workspace.orgCode,
+        },
+        select: {
+          name: true,
+        },
+      });
+
+      if (!channel) {
+        throw errors.NOT_FOUND();
+      }
+
+      return {
+        channelName: channel.name,
+        currentUser: context.user,
+      };
+    } catch (error) {
+      const prismaError =
+        typeof error === "object" && error !== null && "code" in error
+          ? (error as { code?: string; meta?: unknown; clientVersion?: string })
+          : null;
+
+      console.error("❌ Prisma channel.findMany failed", {
+        code: prismaError?.code,
+        meta: prismaError?.meta,
+        clientVersion: prismaError?.clientVersion,
+        error:
+          error instanceof Error
+            ? {
+                name: error.name,
+                message: error.message,
+                stack: error.stack,
+              }
+            : String(error),
+      });
+      throw error;
+    }
   });
