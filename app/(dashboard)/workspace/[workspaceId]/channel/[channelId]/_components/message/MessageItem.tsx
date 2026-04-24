@@ -2,12 +2,17 @@ import { SafeContent } from "@/components/rich-text-editor/SafeContent";
 import { Message } from "@/lib/generated/prisma/client";
 import { getAvatar } from "@/lib/get-avatar";
 import Image from "next/image";
+import { MessageHoverToolbar } from "../../../../_components/toolbar";
+import { useState } from "react";
+import { EditMessage } from "../../../../_components/toolbar/EditMessage";
 
 interface iAppProps {
   message: Message;
+  currentUserId: string;
 }
 
-export function MessageItem({ message }: iAppProps) {
+export function MessageItem({ message, currentUserId }: iAppProps) {
+  const [isEdditing, setIsEdditing] = useState(false);
   return (
     <div className="flex space-x-3 relative p-3 rounded-lg group hover:bg-muted/50">
       <Image
@@ -35,23 +40,38 @@ export function MessageItem({ message }: iAppProps) {
             }).format(message.createdAt)}
           </p>
         </div>
-        <SafeContent
-          className="text-sm wrap-break-word prose dark:prose-invert max-w-none mark:text-primary"
-          content={JSON.parse(message.content)}
-        />
-        <div className="mt-3">
-          {message.imageUrl && (
-            <Image
-              src={message.imageUrl}
-              alt="message attach"
-              width={512}
-              height={512}
-              loading="eager"
-              className="ronded-md max-h-80 w-auto object-contain"
+        {isEdditing ? (
+          <EditMessage
+            message={message}
+            onCancel={() => setIsEdditing(false)}
+            onSave={() => setIsEdditing(false)}
+          />
+        ) : (
+          <>
+            <SafeContent
+              className="text-sm wrap-break-word prose dark:prose-invert max-w-none mark:text-primary"
+              content={JSON.parse(message.content)}
             />
-          )}
-        </div>
+            <div className="mt-3">
+              {message.imageUrl && (
+                <Image
+                  src={message.imageUrl}
+                  alt="message attach"
+                  width={512}
+                  height={512}
+                  loading="eager"
+                  className="ronded-md max-h-80 w-auto object-contain"
+                />
+              )}
+            </div>
+          </>
+        )}
       </div>
+      <MessageHoverToolbar
+        canEdit={message.authorId === currentUserId}
+        messageId={message.id}
+        onEdit={() => setIsEdditing(true)}
+      />
     </div>
   );
 }
