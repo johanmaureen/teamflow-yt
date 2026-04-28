@@ -1,3 +1,4 @@
 {
-  "prisma.pinToPrisma6": false
+  "prisma.pinToPrisma6": false,
+  "typescript.native-preview.tsdk": "/home/johanr/youtube/teamflow-yt/node_modules/@typescript/native-preview"
 }
