@@ -56,6 +56,7 @@ export function MessageList() {
       if (el) {
         bottomRef.current?.scrollIntoView({
           block: "end",
+          behavior: "smooth",
         });
         // eslint-disable-next-line react-hooks/set-state-in-effect
         setHasInitialScrolled(true);
@@ -74,6 +75,7 @@ export function MessageList() {
         requestAnimationFrame(() => {
           bottomRef.current?.scrollIntoView({
             block: "end",
+            behavior: "smooth",
           });
         });
       }
@@ -119,8 +121,9 @@ export function MessageList() {
         const newScrollHeight = el.scrollHeight;
         el.scrollTop = newScrollHeight - prevScrollHeight + prevScrollTop;
       });
-      setIsAtBottom(isNearBottom(el));
     }
+
+    setIsAtBottom(isNearBottom(el));
   };
 
   const items = useMemo(() => {
@@ -151,6 +154,7 @@ export function MessageList() {
     if (!el) return;
     bottomRef.current?.scrollIntoView({
       block: "end",
+      behavior: "smooth",
     });
     setIsAtBottom(true);
   };
