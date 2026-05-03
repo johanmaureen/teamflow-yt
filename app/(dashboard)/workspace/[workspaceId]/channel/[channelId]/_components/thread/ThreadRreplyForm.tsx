@@ -93,9 +93,7 @@ export function ThreadReplyForm({ threadId, user }: ThreadReplyFormProps) {
             const pages = old.pages.map((page) => ({
               ...page,
               items: page.items.map((m) =>
-                m.id === threadId
-                  ? { ...m, repliesCount: m.repliesCount + 1 }
-                  : m,
+                m.id === threadId ? { ...m, replyCount: m.replyCount + 1 } : m,
               ),
             }));
             return { ...old, pages };
