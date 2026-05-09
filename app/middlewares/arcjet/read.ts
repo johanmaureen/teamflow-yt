@@ -1,4 +1,4 @@
-import arcjet, { slidingWindow } from "@/lib/arcjet";
+import arcjet, { sensitiveInfo, slidingWindow } from "@/lib/arcjet";
 import { base } from "../base";
 import { KindeUser } from "@kinde-oss/kinde-auth-nextjs";
 
@@ -10,7 +10,14 @@ const buildStandardAj = () =>
       max: 180,
     }),
   );
-
+/*
+    .withRule(
+      sensitiveInfo({
+        mode: "LIVE",
+        deny: ["PHONE_NUMBER", "CREDIT_CARD_NUMBER"],
+      }),
+    );
+*/
 export const readSecurityMiddleware = base
   .$context<{
     request: Request;
