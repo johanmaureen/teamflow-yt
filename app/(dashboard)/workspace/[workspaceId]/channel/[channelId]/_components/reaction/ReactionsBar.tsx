@@ -149,7 +149,7 @@ export function ReactionsBar({
   };
   return (
     <div className="mt-1 flex items-center gap-1">
-      {reactions.length > 0 && (
+      {reactions && reactions.length > 0 && (
         <div>
           {reactions.map((r) => (
             <Button
